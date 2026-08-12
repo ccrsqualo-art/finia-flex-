@@ -345,10 +345,24 @@ st.caption("Copiloto Financiero y de Control de Costos — FlexParts Manufacturi
 
 with st.sidebar:
     st.header("Configuración")
-    groq_api_key = st.text_input(
-        "API key de Groq", type="password",
-        help="Obtén una gratis en console.groq.com/keys. No se guarda en ningún lado.",
-    )
+
+    # Si el propietario configuró GROQ_API_KEY como Secret en Streamlit Cloud,
+    # se usa automáticamente y no se le pide nada al visitante. Si no existe
+    # ningún Secret configurado (por ejemplo, al correr la app localmente),
+    # se pide la key manualmente como respaldo.
+    try:
+        groq_api_key_secret = st.secrets.get("GROQ_API_KEY", "")
+    except Exception:
+        groq_api_key_secret = ""
+
+    if groq_api_key_secret:
+        groq_api_key = groq_api_key_secret
+        st.success("✅ API key configurada por el propietario de la app.")
+    else:
+        groq_api_key = st.text_input(
+            "API key de Groq", type="password",
+            help="Obtén una gratis en console.groq.com/keys. No se guarda en ningún lado.",
+        )
     st.divider()
     st.subheader("Datos financieros")
     archivo = st.file_uploader("Sube tu archivo Excel (opcional)", type=["xlsx"],
