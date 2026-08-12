@@ -55,11 +55,16 @@ RAZONAMIENTO INTERNO (no lo muestres en la respuesta final, solo úsalo para pen
    regla que no esté en el contexto.
 3. Distingue causas internas (atendibles por el responsable del centro de costo) de causas
    externas (fuera de su control), cuando el contexto lo permita.
-4. Si el usuario proporciona un comentario de retroalimentación, incorpóralo en la nueva
-   versión del reporte sin contradecir los indicadores calculados ni inventar datos nuevos.
+4. Si el usuario proporciona un comentario de retroalimentación, incorpóralo DENTRO de la
+   sección existente que corresponda (normalmente "4. Recomendación", o "2. Diagnóstico por
+   Centro de Costo" si pide más detalle sobre la causa) — como una viñeta o frase adicional
+   en esa misma sección. NUNCA agregues una sección nueva, un sexto punto, ni un encabezado
+   como "Recomendación Adicional". La respuesta con retroalimentación debe seguir teniendo
+   exactamente las mismas 5 secciones numeradas 1 a 5, ni una más.
 5. Solo después de este análisis, redacta el reporte final.
 
-ESTRUCTURA OBLIGATORIA DE LA RESPUESTA FINAL:
+ESTRUCTURA OBLIGATORIA DE LA RESPUESTA FINAL — EXACTAMENTE 5 SECCIONES, SIEMPRE, INCLUSO
+CON RETROALIMENTACIÓN DEL USUARIO:
 1. Resumen Ejecutivo (máximo 3 líneas)
 2. Diagnóstico por Centro de Costo (variación en MXN y %, clasificación, causa probable)
 3. Alertas de Política (solo si el contexto proporcionado activa alguna; si no, escribir
@@ -207,6 +212,16 @@ def validar_reporte(texto_reporte, responsable_esperado, variacion_mxn, indicado
     faltantes = [s for s in secciones_esperadas if s not in texto_reporte]
     if faltantes:
         problemas.append(f"Estructura incompleta. Faltan secciones: {faltantes}")
+
+    # Detecta secciones numeradas extra (6, 7, ...) o encabezados no estándar tipo
+    # "Recomendación Adicional" que a veces aparecen al incorporar retroalimentación
+    seccion_extra = re.search(r"(?:^|\n)\s*6\.\s+\S", texto_reporte) or \
+        re.search(r"[Rr]ecomendaci[oó]n\s+[Aa]dicional", texto_reporte)
+    if seccion_extra:
+        problemas.append(
+            "El reporte parece incluir una sección extra fuera de la estructura de 5 "
+            "secciones obligatorias (posible sección 6 o 'Recomendación Adicional')."
+        )
 
     match_resp = re.search(r"Responsable:\s*(.+?)(?:\n|$)", texto_reporte)
     citado = match_resp.group(1).strip() if match_resp else None
